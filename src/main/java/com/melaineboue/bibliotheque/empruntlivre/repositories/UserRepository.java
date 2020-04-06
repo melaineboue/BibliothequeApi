@@ -1,4 +1,4 @@
-package com.melaineboue.bibliotheque.repositories;
+package com.melaineboue.bibliotheque.empruntlivre.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
