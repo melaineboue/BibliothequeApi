@@ -6,4 +6,6 @@ import com.melaineboue.bibliotheque.empruntlivre.entities.Book;
 
 public interface BookRepository extends JpaRepository<Book, Integer>{
 
+	void deleteById(String bookId);
+
 }
