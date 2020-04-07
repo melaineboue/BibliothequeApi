@@ -1,5 +1,6 @@
 package com.melaineboue.bibliotheque.empruntlivre.controller;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,7 +69,7 @@ public class ApiController {
 	
 	//suppression d'un livre
 	@DeleteMapping(value = "/books/{bookId}/delete")
-	public ResponseEntity deleteBook(@PathVariable("bookId") String bookId) throws NumberFormatException
+	public ResponseEntity deleteBook(@PathVariable("bookId") String bookId) throws Exception 
 	{
 		int book_id = Integer.parseInt(bookId);
 		List<Loan> loans = loanRepository.findByBookId(book_id);
@@ -78,7 +79,12 @@ public class ApiController {
 			if(loan.getCloseDate()==null)
 				return new ResponseEntity(HttpStatus.CONFLICT);
 		}
-		bookRepository.deleteById(bookId);
+		Optional<Book> bookOptional = bookRepository.findById(book_id);
+		if(bookOptional.isPresent())
+			throw new Exception("Le livre que vous voulez supprimer n'existe pas");
+		Book book = bookOptional.get();
+		book.setDeleted(Boolean.TRUE);
+		bookRepository.save(book);
 		return new ResponseEntity(HttpStatus.NO_CONTENT);
 	}
 
@@ -93,16 +99,91 @@ public class ApiController {
 	//ajout user
 	@PostMapping(value = "/users")
 	public ResponseEntity createUser(@RequestBody User user) {
-		List<User> users = userRepository.findByEmail(user.getEmail());
-		if(users != null || users.size() > 0)
+		User userOptional = userRepository.findByEmail(user.getEmail());
+		/*if(userOptional != null || users.size() > 0)
 			return new ResponseEntity(HttpStatus.CONFLICT);
-		userRepository.save(user);
+		userRepository.save(user);*/
 		return  new ResponseEntity(HttpStatus.CREATED);
 	}
 
 	//suppression user
-	
+	@DeleteMapping(value = "/users/{userId}")
+	public ResponseEntity deleteUser(@PathVariable("userId") String userId) {
+		
+		int user_id = Integer.parseInt(userId);
+		List<Loan> loans = loanRepository.findByBorrowerIdOrLenderId(user_id, user_id);
+		for(Loan loan : loans)
+		{
+			//On ne peut pas supprimer un livre dont l'emprunt est en cours
+			if(loan.getCloseDate()==null)
+				return new ResponseEntity(HttpStatus.CONFLICT);
+		}
+		userRepository.deleteById(user_id);
+		return new ResponseEntity(HttpStatus.NO_CONTENT);
+	}
+
 	//rechercher user par email
+	@GetMapping(value = "/users/{email}")
+	@ResponseStatus(code = HttpStatus.OK)
+	public User getUser(@PathVariable("email") String email) {
+		return userRepository.findByEmail(email);
+	}
+	
+	
+	//les emprunts
+	//add loan
+	@PostMapping(value = "/users/{userId}/books/{bookId}/loan")
+	public ResponseEntity createLoan(@PathVariable("userId") String userId, @PathVariable("bookId") String bookId) throws Exception
+	{
+		Loan loan = new Loan();
+		int user_id = Integer.parseInt(userId);
+		int book_id = Integer.parseInt(bookId);
+
+		List<Loan> loans = loanRepository.findByBookIdAndBorrowerId(book_id, user_id);
+		if(loans != null && loans.size() > 0)
+			return new ResponseEntity(HttpStatus.CONFLICT);
+		
+		Optional<User> userOptional = userRepository.findById(user_id);
+		Optional<Book> bookOptional = bookRepository.findById(book_id);
+		if(!userOptional.isPresent() || !bookOptional.isPresent())
+			throw new Exception("Le livre ou l'utilisateur n'existe pas");
+		
+		Book book = bookOptional.get();
+		User user = userOptional.get();
+		
+		book.setStatus(EnumsBookStatus.USED.getCode());
+		bookRepository.save(book);
+		loan.setAskDate(new Date());
+		loan.setBorrower(user);
+		loan.setLender(book.getUser());
+		loan.setBook(book); 
+		loanRepository.save(loan);
+		return new ResponseEntity(HttpStatus.CREATED);
+	}
+	
+	@DeleteMapping("/loans/{loanId}")
+	@ResponseStatus(code = HttpStatus.NO_CONTENT)
+	public void deleteLoan(@PathVariable("laonId") String loanId) throws Exception 
+	{
+		int loan_id = Integer.parseInt(loanId);
+		Optional<Loan> loanOptional = loanRepository.findById(loan_id);
+		if(!loanOptional.isPresent())
+			throw new Exception("L'emprunt ayant pour id "+ loanId +"n'existe pas ");
+		Loan loan = loanOptional.get();
+		loan.setCloseDate(new Date());
+		Book book = loan.getBook();
+		book.setStatus(EnumsBookStatus.AVAILABLE.getCode());
+		loanRepository.save(loan);
+		bookRepository.save(book);
+	}
+	
+	//tous les emprunts
+	@GetMapping(value = "/loans")
+	public List<Loan> getLoans() {
+		return loanRepository.findAll();
+	}
+
+
 	
 	
 	
