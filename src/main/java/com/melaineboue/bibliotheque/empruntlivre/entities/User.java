@@ -9,8 +9,8 @@ public class User {
 	@Id
 	@GeneratedValue
 	int id;
-	String firstName;
-	String lastName;
+	String firstname;
+	String lastname;
 	String email;
 	public int getId() {
 		return id;
@@ -19,16 +19,16 @@ public class User {
 		this.id = id;
 	}
 	public String getFirstName() {
-		return firstName;
+		return firstname;
 	}
 	public void setFirstName(String firstName) {
-		this.firstName = firstName;
+		this.firstname = firstName;
 	}
 	public String getLastName() {
-		return lastName;
+		return lastname;
 	}
 	public void setLastName(String lastName) {
-		this.lastName = lastName;
+		this.lastname = lastName;
 	}
 	public String getEmail() {
 		return email;

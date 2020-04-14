@@ -79,6 +79,20 @@ public class ApiController {
 		return bookRepository.findByUserIdAndDeletedFalse(user_id);
 	}
 	
+	//le 1er livre d'un utilisateur
+	@ResponseStatus(code = HttpStatus.CREATED)
+	@GetMapping(value = "/users/{userId}/books/{numero}")
+	public Book getFirstBookForUser(@PathVariable("userId") String userId, @PathVariable("numero") String numero)  throws NumberFormatException, Exception
+	{
+		int user_id = Integer.parseInt(userId);
+		int numero_ = Integer.parseInt(numero);
+		
+		Optional<User> userOptional = userRepository.findById(user_id);
+		if(!userOptional.isPresent())
+			throw new Exception("User avec userId "+userId+" est introuvable");
+		List<Book> books = bookRepository.findByUserIdAndDeletedFalse(user_id);
+		return (books.size() >=numero_ ) ? books.get(numero_ -1) : null;
+	}
 	
 	
 	//suppression d'un livre
