@@ -13,6 +13,12 @@ public interface LoanRepository extends JpaRepository<Loan, Integer>{
 
 	public List<Loan> findByBorrowerIdOrLenderId(int user_id, int userId);
 
-	public List<Loan> findByBookIdAndBorrowerId(int book_id, int user_id);
+	//public List<Loan> findByBookIdAndBorrowerId(int book_id, int user_id);
+
+	public List<Loan> findByBorrowerIdAndCloseDateNull(int user_id);
+
+	public List<Loan> findByBookIdAndBorrowerIdAndCloseDateNull(int book_id, int user_id);
+
+	public List<Loan> findByBorrowerIdAndCloseDateNotNull(int user_id);
 
 }

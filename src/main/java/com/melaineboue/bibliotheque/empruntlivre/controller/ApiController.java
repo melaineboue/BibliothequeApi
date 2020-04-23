@@ -79,6 +79,27 @@ public class ApiController {
 		return bookRepository.findByUserIdAndDeletedFalse(user_id);
 	}
 	
+	//Liste des livres disponibles à être prêté (livres disponibles n'appartenant pas à l'utilisateur connecté
+	@GetMapping(value = "/users/free/{userId}")
+	public List<Book> getLoanableBooks(@PathVariable("userId") String userId) throws NumberFormatException{
+		int user_id = Integer.parseInt(userId);
+		return bookRepository.findByUserIdNotAndStatusAndDeletedFalse(user_id, "Available");
+	}
+
+	//Liste des emprunts en cours de l'utilisateur connecté
+	@GetMapping(value = "/users/currentLoan/{userId}")
+	public List<Loan> getCurrentLoans(@PathVariable("userId") String userId) throws NumberFormatException{
+		int user_id = Integer.parseInt(userId);
+		return loanRepository.findByBorrowerIdAndCloseDateNull(user_id);
+	}
+	
+	//Liste des anciens emprunts de l'utilisateur connecté
+	@GetMapping(value = "/users/oldLoan/{userId}")
+	public List<Loan> getOldLoans(@PathVariable("userId") String userId) throws NumberFormatException{
+		int user_id = Integer.parseInt(userId);
+		return loanRepository.findByBorrowerIdAndCloseDateNotNull(user_id);
+	}
+	
 	//le 1er livre d'un utilisateur
 	@ResponseStatus(code = HttpStatus.CREATED)
 	@GetMapping(value = "/users/{userId}/books/{numero}")
@@ -96,9 +117,10 @@ public class ApiController {
 	
 	
 	//suppression d'un livre
-	@DeleteMapping(value = "/books/{bookId}/delete")
+	@DeleteMapping(value = "/books/{bookId}")
 	public ResponseEntity deleteBook(@PathVariable("bookId") String bookId) throws Exception 
 	{
+		System.out.println("Delete Book");
 		int book_id = Integer.parseInt(bookId);
 		List<Loan> loans = loanRepository.findByBookId(book_id);
 		for(Loan loan : loans)
@@ -108,10 +130,10 @@ public class ApiController {
 				return new ResponseEntity(HttpStatus.CONFLICT);
 		}
 		Optional<Book> bookOptional = bookRepository.findById(book_id);
-		if(bookOptional.isPresent())
+		if(!bookOptional.isPresent())
 			throw new Exception("Le livre que vous voulez supprimer n'existe pas");
 		Book book = bookOptional.get();
-		book.setDeleted(Boolean.TRUE);
+		book.setDeleted(Boolean.TRUE); 
 		bookRepository.save(book);
 		return new ResponseEntity(HttpStatus.NO_CONTENT);
 	}
@@ -119,7 +141,7 @@ public class ApiController {
 	//User
 	//liste des users
 	@GetMapping(value = "/users")
-	@ResponseStatus(code = HttpStatus.OK)
+	@ResponseStatus(code = HttpStatus.OK) 
 	public List<User> getUsers() {
 		return userRepository.findAll();
 	}
@@ -160,14 +182,14 @@ public class ApiController {
 	
 	//les emprunts
 	//add loan
-	@PostMapping(value = "/users/{userId}/books/{bookId}/loan")
+	@GetMapping(value = "/users/{userId}/books/{bookId}/loan")
 	public ResponseEntity createLoan(@PathVariable("userId") String userId, @PathVariable("bookId") String bookId) throws Exception
 	{
 		Loan loan = new Loan();
 		int user_id = Integer.parseInt(userId);
 		int book_id = Integer.parseInt(bookId);
 
-		List<Loan> loans = loanRepository.findByBookIdAndBorrowerId(book_id, user_id);
+		List<Loan> loans = loanRepository.findByBookIdAndBorrowerIdAndCloseDateNull(book_id, user_id);
 		if(loans != null && loans.size() > 0)
 			return new ResponseEntity(HttpStatus.CONFLICT);
 		
@@ -191,7 +213,7 @@ public class ApiController {
 	
 	@DeleteMapping("/loans/{loanId}")
 	@ResponseStatus(code = HttpStatus.NO_CONTENT)
-	public void deleteLoan(@PathVariable("laonId") String loanId) throws Exception 
+	public void deleteLoan(@PathVariable("loanId") String loanId) throws Exception 
 	{
 		int loan_id = Integer.parseInt(loanId);
 		Optional<Loan> loanOptional = loanRepository.findById(loan_id);
@@ -208,7 +230,7 @@ public class ApiController {
 	//tous les emprunts
 	@GetMapping(value = "/loans")
 	public List<Loan> getLoans() {
-		return loanRepository.findAll();
+		return loanRepository.findAll(); 
 	}
 
 
