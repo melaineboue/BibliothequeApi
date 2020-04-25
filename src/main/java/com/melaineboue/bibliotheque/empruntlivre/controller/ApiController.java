@@ -149,10 +149,10 @@ public class ApiController {
 	//ajout user
 	@PostMapping(value = "/users")
 	public ResponseEntity createUser(@RequestBody User user) {
-		User userOptional = userRepository.findByEmail(user.getEmail());
-		/*if(userOptional != null || users.size() > 0)
+		User userRecovered = userRepository.findByEmail(user.getEmail());
+		if(userRecovered != null)
 			return new ResponseEntity(HttpStatus.CONFLICT);
-		userRepository.save(user);*/
+		userRepository.save(user);
 		return  new ResponseEntity(HttpStatus.CREATED);
 	}
 
@@ -177,8 +177,7 @@ public class ApiController {
 	@ResponseStatus(code = HttpStatus.OK)
 	public User getUser(@PathVariable("email") String email) {
 		return userRepository.findByEmail(email);
-	}
-	
+	}	
 	
 	//les emprunts
 	//add loan
@@ -187,7 +186,7 @@ public class ApiController {
 	{
 		Loan loan = new Loan();
 		int user_id = Integer.parseInt(userId);
-		int book_id = Integer.parseInt(bookId);
+		int book_id = Integer.parseInt(bookId); 
 
 		List<Loan> loans = loanRepository.findByBookIdAndBorrowerIdAndCloseDateNull(book_id, user_id);
 		if(loans != null && loans.size() > 0)
