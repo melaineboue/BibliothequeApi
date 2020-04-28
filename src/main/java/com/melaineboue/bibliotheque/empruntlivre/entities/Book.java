@@ -4,16 +4,18 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.TableGenerator;
 import javax.validation.constraints.Size;
 
 import lombok.Data;
 
 @Entity
 @Data
+@TableGenerator(name = "idBookGenerator", initialValue = 4)
 public class Book{
 	
 	@Id
-	@GeneratedValue
+	@GeneratedValue(generator = "idBookGenerator")
 	int id;
 	@Size(min = 1, max = 75, message = "La taille doit être au moins 1 et au plus 75")
 	String name;

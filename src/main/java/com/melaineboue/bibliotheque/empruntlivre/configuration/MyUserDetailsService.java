@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,21 +26,35 @@ public class MyUserDetailsService implements UserDetailsService
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		User user = userRepository.findByEmail(email);
-		
 		if(user == null)
 			throw new UsernameNotFoundException(email);
 		UserDetails userDetails = new UserPrincipal(user);
+		System.out.println(userDetails.toString());
 		return userDetails;
 	}
 	
 	public static class UserPrincipal implements UserDetails
 	{
 		User user;
+		
+
 		private final String DEFAULT_PASSWORD = "123456";
 		
 		public UserPrincipal(User user) {
 			this.user = user;
 			this.user.setPassword("{noop}"+ user.getPassword());
+		    /*
+		    noop : plain text NoOpPasswordEncoder
+		    bcrypt : BCryptPasswordEncoder
+		    scrypt : SCryptPasswordEncoder
+		    pbkdf2 : Pbkdf2PasswordEncoder
+		    sha256 : StandardPasswordEncoder
+		    */ 
+		}
+
+		@Override
+		public String toString() {
+			return "UserPrincipal [user=" + user.toString() + "]";
 		}
 
 		@Override
@@ -77,6 +92,14 @@ public class MyUserDetailsService implements UserDetailsService
 		@Override
 		public boolean isEnabled() {
 			return true;
+		}
+		
+		public User getUser() {
+			return user;
+		}
+
+		public void setUser(User user) {
+			this.user = user;
 		}
 		
 	}

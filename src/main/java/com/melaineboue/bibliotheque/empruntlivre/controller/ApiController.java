@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.melaineboue.bibliotheque.empruntlivre.Enums.EnumsBookStatus;
 import com.melaineboue.bibliotheque.empruntlivre.Exceptions.ExceptionFormatIncorrect;
+import com.melaineboue.bibliotheque.empruntlivre.configuration.MyUserDetailsService;
 import com.melaineboue.bibliotheque.empruntlivre.entities.Book;
 import com.melaineboue.bibliotheque.empruntlivre.entities.Loan;
 import com.melaineboue.bibliotheque.empruntlivre.entities.User;
@@ -49,7 +51,7 @@ public class ApiController {
 		return bookRepository.findAll();
 	}
 
-	//Creation d'un livre utilisateur
+	//Creation d'un livre utilisateur 
 	@ResponseStatus(code = HttpStatus.CREATED)
 	@PostMapping(value = "/users/{userId}/book")
 	public void createBookForUser(@RequestBody Book book, @PathVariable("userId") String userId)  throws NumberFormatException, Exception
@@ -230,6 +232,36 @@ public class ApiController {
 	@GetMapping(value = "/loans")
 	public List<Loan> getLoans() {
 		return loanRepository.findAll(); 
+	}
+	
+	
+	//verifie si un utilisateur est connecté,
+	//Si c'est le cas, il retourne son id
+	//sinon 0
+	@GetMapping(value = "/users/isAuthenticated/userId")
+	public Integer getUserAuthenticated() {
+		
+		User userLogged =  getUserContexte();
+		return (userLogged == null) ? 0 : userLogged.getId();
+	}
+
+	
+	@GetMapping(value = "/users/isAuthenticated/user")
+	public User getUserContexte()
+	{
+		User user = null;
+		if(SecurityContextHolder.getContext().getAuthentication() == null)
+			return null;
+		
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		System.out.println(principal.getClass().toString());
+		System.out.println(principal);
+		if(principal instanceof MyUserDetailsService.UserPrincipal)
+		{
+			user = ((MyUserDetailsService.UserPrincipal)principal).getUser();
+		}
+		
+		return user;
 	}
 
 

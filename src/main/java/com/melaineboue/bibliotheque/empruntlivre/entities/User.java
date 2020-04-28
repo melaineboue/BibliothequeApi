@@ -6,11 +6,12 @@ import javax.persistence.Id;
 import javax.persistence.TableGenerator;
 
 @Entity
-@TableGenerator(name = "idGenerator", initialValue = 2)
+@TableGenerator(name = "idUserGenerator", initialValue = 3)
 public class User {
 	@Id
-	@GeneratedValue(generator = "idGenerator")
+	@GeneratedValue(generator = "idUserGenerator")
 	int id;
+	
 	String firstname; 
 	String lastname;
 	String email;
@@ -47,5 +48,10 @@ public class User {
 		this.password = password;
 	}
 	
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", firstname=" + firstname + ", lastname=" + lastname + ", email=" + email
+				+ ", password=" + password + "]";
+	}
 	
 }

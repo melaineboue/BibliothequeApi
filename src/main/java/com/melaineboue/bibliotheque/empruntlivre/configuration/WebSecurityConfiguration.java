@@ -40,6 +40,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter{
 		.antMatchers("/favicon.ico").permitAll()
 		.antMatchers("/users/**").permitAll()
 		.antMatchers("/loans/**").permitAll()
+		.antMatchers("/books/**").permitAll()
 		.antMatchers("/h2-console/**").permitAll()
 		.anyRequest().authenticated()
 		.and()
